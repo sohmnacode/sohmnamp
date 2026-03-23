@@ -122,7 +122,8 @@ body{background:var(--bg);font-family:'Rajdhani',sans-serif;color:var(--text-bri
 .pl-track .pl-drag{cursor:grab;color:var(--text-dim);font-size:11px;padding:0 4px;opacity:0;transition:opacity 0.15s;user-select:none;font-family:'Share Tech Mono',monospace}
 .pl-track:hover .pl-drag{opacity:0.6}.pl-track .pl-drag:active{cursor:grabbing}
 .pl-track.dragging{opacity:0.4;background:rgba(180,74,255,0.1)}
-.pl-track.drag-over{border-top:2px solid var(--glow-violet)}
+.pl-track.drag-over{border-top:2px solid var(--glow-violet);background:rgba(0,229,255,0.05)}
+.pl-track.drag-over-below{border-bottom:2px solid var(--glow-violet);background:rgba(0,229,255,0.05)}
 .pl-save-btn,.pl-load-btn{background:transparent;border:1px solid var(--panel-border);border-radius:2px;padding:2px 8px;cursor:pointer;
   font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;transition:all 0.15s;color:var(--text-dim)}
 .pl-save-btn:hover,.pl-load-btn:hover{border-color:rgba(0,229,255,0.2);color:var(--text-mid)}
@@ -158,6 +159,14 @@ body.mini-mode #app{display:none}
   display:none;align-items:center;gap:4px;margin-left:4px}
 .rec-timer.visible{display:flex}
 .rec-dot{width:6px;height:6px;border-radius:50%;background:#ff2244;animation:rec-pulse 1s ease infinite}
+/* ─── UPDATE NOTIFICATION ─── */
+.update-bar{display:none;align-items:center;justify-content:space-between;
+  padding:5px 14px;background:linear-gradient(90deg,rgba(0,229,255,0.08),rgba(180,74,255,0.08));
+  border-bottom:1px solid rgba(0,229,255,0.15);font-family:'Share Tech Mono',monospace;font-size:9px}
+.update-bar.visible{display:flex}
+.update-bar-text{color:var(--glow-cyan);letter-spacing:1px}
+.update-bar-progress{color:var(--glow-violet);letter-spacing:1px}
+
 /* ─── BEAT SYNC ─── */
 .beat-sync-btn{padding:3px 7px;background:transparent;border:1px solid transparent;border-radius:2px;
   font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);
@@ -342,6 +351,11 @@ body.mini-mode #app{display:none}
 <div id="app">
   <div class="file-drop" id="fileDrop">DROP AUDIO FILES</div>
   <div class="titlebar"><div class="logo">SOHMNAMP</div><div class="ver">v4.0.0 // cosmic audio</div><button class="mini-btn" id="miniBtn">MINI</button></div>
+  <!-- UPDATE BAR -->
+  <div class="update-bar" id="updateBar">
+    <span class="update-bar-text" id="updateBarText">&#8635; downloading update...</span>
+    <span class="update-bar-progress" id="updateBarProgress">0%</span>
+  </div>
   <div class="viz-container" id="vizContainer">
     <canvas id="threeCanvas"></canvas><canvas id="vizCanvas"></canvas>
     <div class="viz-overlay"></div><div class="beat-flash" id="beatFlash"></div><div class="viz-label" id="vizLabel">NEBULA</div>
@@ -438,6 +452,7 @@ body.mini-mode #app{display:none}
       <button class="viz-mode-btn" data-mode="crystal">Crystal</button>
       <button class="viz-mode-btn" data-mode="aurora">Aurora</button>
       <button class="viz-mode-btn" data-mode="stars">Stars</button>
+      <button class="viz-mode-btn" data-mode="plasma">Plasma</button>
       <button class="viz-shuffle-btn" id="vizShuffleBtn" title="Auto-shuffle visuals">&#8634; AUTO</button>
       <button class="beat-sync-btn" id="beatSyncBtn" title="Switch visuals on beat drops">&#9835; BEAT</button>
       <button class="rec-btn" id="recBtn" title="Record audio stream">&#9679; REC</button>
@@ -540,8 +555,8 @@ const vizContainer=document.getElementById('vizContainer'),threeCanvas=document.
 let audioCtx,analyser,source,gainNode,audioElement=null,isPlaying=false,currentMode='nebula';
 let playlist=[],currentTrack=-1,shuffleOn=false,repeatOn=false;
 let freqData,timeData,bass=0,mid=0,high=0,energy=0;
-const allModes=['nebula','galaxy','supernova','cosmos','stardust','crystal','aurora','stars'];
-const threeModes=['nebula','galaxy','supernova','cosmos','stardust','crystal','aurora','stars'];
+const allModes=['nebula','galaxy','supernova','cosmos','stardust','crystal','aurora','stars','plasma'];
+const threeModes=['nebula','galaxy','supernova','cosmos','stardust','crystal','aurora','stars','plasma'];
 let vizShuffleOn=false,vizShuffleTimer=null;
 let isFullscreen=false,hudTimeout=null;
 let crossfadeDuration=3;
@@ -695,6 +710,7 @@ const pointFragBright=`varying vec3 vColor;varying float vAlpha;void main(){floa
 /* ═══ THREE.JS ═══ */
 let renderer,scene,camera,clock=new THREE.Clock();
 let nebulaP,galaxyP,supernovaP,cosmosP,stardustP,crystalMesh,auroraPlane,starsGroup;
+let plasmaQuad;
 
 function makePoints(count,posFn,colFn,sizeFn){
   const geo=new THREE.BufferGeometry();
@@ -849,7 +865,45 @@ function initThree(){
     vertexShader:`varying vec3 vColor;uniform float uEnergy;void main(){vColor=color*(0.5+uEnergy*2.0);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
     fragmentShader:`varying vec3 vColor;uniform float uEnergy;void main(){gl_FragColor=vec4(vColor*(1.0+uEnergy*0.5),0.15+uEnergy*0.35);}`})));
   starsGroup.visible=false;scene.add(starsGroup);
-}
+
+  // ── PLASMA: full-screen GLSL color wave quad ──
+  plasmaQuad=new THREE.Mesh(new THREE.PlaneGeometry(10,10),new THREE.ShaderMaterial({
+    transparent:false,depthWrite:false,
+    uniforms:{uTime:{value:0},uBass:{value:0},uMid:{value:0},uHigh:{value:0},uEnergy:{value:0}},
+    vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy*1.2,0.0,1.0);}`,
+    fragmentShader:`${hsl2rgb}
+      varying vec2 vUv;
+      uniform float uTime,uBass,uMid,uHigh,uEnergy;
+      void main(){
+        vec2 p=vUv*2.0-1.0;
+        float t=uTime;
+        // Layered plasma waves
+        float v=0.0;
+        v+=sin(p.x*4.0+t*0.8+uBass*3.0);
+        v+=sin(p.y*4.0+t*0.7+uMid*2.5);
+        v+=sin((p.x+p.y)*3.0+t*0.9);
+        v+=sin(sqrt(p.x*p.x+p.y*p.y)*5.0-t*1.2+uEnergy*4.0);
+        v+=sin(p.x*2.0+sin(p.y*3.0+t*0.5)*2.0+t*0.6+uHigh*3.0)*0.8;
+        v+=sin(p.y*2.0+sin(p.x*3.5+t*0.4)*2.0+t*0.5)*0.8;
+        // Turbulence on bass
+        float bWarp=uBass*2.0;
+        v+=sin((p.x+sin(p.y*2.0+t))*3.0+t*1.1)*bWarp;
+        v=v/5.5; // normalize to -1..1
+        // Map to hue — wide sweep for plasma look
+        float h=fract(v*0.35+t*0.04+uMid*0.1);
+        float s=0.85+uEnergy*0.15;
+        float l=0.35+v*0.15+uBass*0.12+uEnergy*0.08;
+        vec3 col=hsl2rgb(h,s,clamp(l,0.1,0.75));
+        // Vignette
+        float vig=1.0-dot(p*0.7,p*0.7);
+        col*=max(0.3,vig);
+        // Brightness pulse on energy
+        col*=(0.85+uEnergy*0.4);
+        gl_FragColor=vec4(col,1.0);
+      }`
+  }));
+  plasmaQuad.visible=false;scene.add(plasmaQuad);
+} // end initThree
 
 function resizeThree(){const r=vizContainer.getBoundingClientRect();const dpr=window.devicePixelRatio||1;
   renderer.setPixelRatio(dpr);renderer.setSize(r.width,r.height);
@@ -862,6 +916,7 @@ function updateThree(t){
   supernovaP.visible=currentMode==='supernova';cosmosP.visible=currentMode==='cosmos';
   stardustP.visible=currentMode==='stardust';crystalMesh.visible=currentMode==='crystal';
   auroraPlane.visible=currentMode==='aurora';starsGroup.visible=currentMode==='stars';
+  plasmaQuad.visible=currentMode==='plasma';
 
   if(currentMode==='nebula'){const u=nebulaP.material.uniforms;u.uTime.value=t;u.uBass.value=bass;u.uEnergy.value=energy;
     camera.position.set(Math.sin(t*0.15)*2,Math.cos(t*0.1)*1.5,3+Math.sin(t*0.08));camera.lookAt(0,0,0);}
@@ -888,6 +943,12 @@ function updateThree(t){
     starsGroup.children[1].material.uniforms.uTime.value=t;starsGroup.children[1].material.uniforms.uEnergy.value=energy;
     starsGroup.rotation.y=t*0.03;starsGroup.rotation.x=Math.sin(t*0.02)*0.1;
     camera.position.set(Math.sin(t*0.05)*2,Math.cos(t*0.04)*1,5);camera.lookAt(0,0,0);}
+
+  // ── PLASMA update ──
+  if(currentMode==='plasma'){const u=plasmaQuad.material.uniforms;
+    u.uTime.value=t;u.uBass.value=bass;u.uMid.value=mid;u.uHigh.value=high;u.uEnergy.value=energy;
+    camera.position.set(0,0,1);camera.lookAt(0,0,0);
+  }
 
   if(threeModes.includes(currentMode))renderer.render(scene,camera);
 }
@@ -930,10 +991,10 @@ function renderPlaylist(){const body=document.getElementById('plBody'),empty=doc
     row.addEventListener('dblclick',e=>{if(e.target.classList.contains('pl-remove')||e.target.classList.contains('pl-drag'))return;loadTrack(i);play();});
     row.querySelector('.pl-remove').addEventListener('click',e=>{e.stopPropagation();removeTrack(i);});
     // Drag events
-    row.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',i);row.classList.add('dragging');});
-    row.addEventListener('dragend',()=>{row.classList.remove('dragging');body.querySelectorAll('.pl-track').forEach(r=>r.classList.remove('drag-over'));});
-    row.addEventListener('dragover',e=>{e.preventDefault();body.querySelectorAll('.pl-track').forEach(r=>r.classList.remove('drag-over'));row.classList.add('drag-over');});
-    row.addEventListener('drop',e=>{e.preventDefault();row.classList.remove('drag-over');
+    row.addEventListener('dragstart',e=>{isDraggingPlaylistItem=true;e.dataTransfer.setData('text/plain',String(i));row.classList.add('dragging');});
+    row.addEventListener('dragend',()=>{isDraggingPlaylistItem=false;fileDrop.classList.remove('visible');row.classList.remove('dragging');body.querySelectorAll('.pl-track').forEach(r=>r.classList.remove('drag-over'));});
+    row.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();body.querySelectorAll('.pl-track').forEach(r=>r.classList.remove('drag-over'));row.classList.add('drag-over');});
+    row.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();isDraggingPlaylistItem=false;row.classList.remove('drag-over');
       const fromIdx=parseInt(e.dataTransfer.getData('text/plain'));const toIdx=parseInt(row.dataset.idx);
       if(fromIdx===toIdx)return;
       const item=playlist.splice(fromIdx,1)[0];playlist.splice(toIdx,0,item);
@@ -1684,9 +1745,19 @@ document.getElementById('plClearBtn').addEventListener('click',e=>{e.stopPropaga
 fileInput.addEventListener('change',e=>{addFiles(e.target.files);e.target.value='';});
 fileInputAdd.addEventListener('change',e=>{addFiles(e.target.files);e.target.value='';});
 const fileDrop=document.getElementById('fileDrop');
-document.addEventListener('dragover',e=>{e.preventDefault();fileDrop.classList.add('visible');});
-document.addEventListener('dragleave',e=>{if(e.relatedTarget===null||!document.getElementById('app').contains(e.relatedTarget))fileDrop.classList.remove('visible');});
-document.addEventListener('drop',e=>{e.preventDefault();fileDrop.classList.remove('visible');addFiles(e.dataTransfer.files);});
+let isDraggingPlaylistItem=false;
+document.addEventListener('dragover',e=>{
+  if(isDraggingPlaylistItem)return;
+  e.preventDefault();fileDrop.classList.add('visible');
+});
+document.addEventListener('dragleave',e=>{
+  if(isDraggingPlaylistItem)return;
+  if(e.relatedTarget===null||!document.getElementById('app').contains(e.relatedTarget))fileDrop.classList.remove('visible');
+});
+document.addEventListener('drop',e=>{
+  if(isDraggingPlaylistItem)return;
+  e.preventDefault();fileDrop.classList.remove('visible');addFiles(e.dataTransfer.files);
+});
 document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();togglePlayPause();}if(e.code==='ArrowRight')nextTrack();if(e.code==='ArrowLeft')prevTrack();if(e.code==='KeyV')setMode(allModes[(allModes.indexOf(currentMode)+1)%allModes.length]);if(e.code==='KeyF')toggleFullscreen();if(e.code==='Escape'&&isFullscreen){e.preventDefault();exitFullscreen();}if(e.code==='KeyM'){if(isMiniMode)exitMiniMode();else enterMiniMode();}if(e.code==='KeyB'){beatSyncOn=!beatSyncOn;document.getElementById('beatSyncBtn').classList.toggle('active',beatSyncOn);energyHistory=[];}});
 
 /* ═══ FULLSCREEN ═══ */
@@ -1839,6 +1910,30 @@ function saveRecording(){
 document.getElementById('recBtn').addEventListener('click',()=>{
   if(isRecording)stopRecording();else startRecording();
 });
+
+/* ═══ CRASH REPORTING ═══ */
+window.addEventListener('error', e => {
+  if (window.electronAPI && window.electronAPI.reportError) {
+    window.electronAPI.reportError({message: e.message, stack: e.error ? e.error.stack : ''});
+  }
+});
+window.addEventListener('unhandledrejection', e => {
+  if (window.electronAPI && window.electronAPI.reportError) {
+    window.electronAPI.reportError({message: String(e.reason), stack: e.reason && e.reason.stack ? e.reason.stack : ''});
+  }
+});
+
+/* ═══ AUTO-UPDATE UI ═══ */
+if (window.electronAPI) {
+  // Show download progress bar
+  window.electronAPI.onUpdateDownloading && window.electronAPI.onUpdateDownloading(() => {
+    document.getElementById('updateBar').classList.add('visible');
+    document.getElementById('updateBarText').textContent = '⬇ downloading update...';
+  });
+  window.electronAPI.onUpdateProgress && window.electronAPI.onUpdateProgress(pct => {
+    document.getElementById('updateBarProgress').textContent = pct + '%';
+  });
+}
 
 /* ═══ INIT ═══ */
 (function(){const r=vizContainer.getBoundingClientRect();const dpr=window.devicePixelRatio||1;vizCanvas.width=r.width*dpr;vizCanvas.height=r.height*dpr;ctx2d.setTransform(dpr,0,0,dpr,0,0);buildEqSliders();initThree();initStreamUI();mainLoop();setTimeout(fitWindow,500);})();
