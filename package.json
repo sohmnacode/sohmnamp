@@ -1,0 +1,84 @@
+{
+  "name": "sohmnamp",
+  "version": "4.0.0",
+  "description": "SOHMNAMP — Immersive Cosmic Audio Visualizer",
+  "main": "main.js",
+  "author": "SOHMNAMP",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:mac:dmg": "electron-builder --mac dmg",
+    "build:mac:arm": "electron-builder --mac --arm64",
+    "build:mac:intel": "electron-builder --mac --x64",
+    "build:mac:universal": "electron-builder --mac --universal",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "release:mac": "electron-builder --mac --publish always",
+    "release:win": "electron-builder --win --publish always"
+  },
+  "devDependencies": {
+    "electron": "22.3.27",
+    "electron-builder": "^24.13.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.7"
+  },
+  "build": {
+    "appId": "com.sohmnamp.visualizer",
+    "productName": "SOHMNAMP",
+    "copyright": "Copyright © 2026 SOHMNAMP",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "main.js",
+      "preload.js",
+      "assets/**/*",
+      "node_modules/electron-updater/**/*"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "sohmnacode",
+      "repo": "sohmnamp",
+      "releaseType": "release"
+    },
+    "mac": {
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.music",
+      "darkModeSupport": true,
+      "minimumSystemVersion": "10.13.6",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "iconSize": 120,
+      "contents": [
+        { "x": 180, "y": 220 },
+        { "x": 480, "y": 220, "type": "link", "path": "/Applications" }
+      ],
+      "window": {
+        "width": 660,
+        "height": 440
+      },
+      "title": "SOHMNAMP Installer"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": "nsis"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Audio"
+    }
+  }
+}
