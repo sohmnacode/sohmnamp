@@ -97,8 +97,9 @@ function createWindow() {
     if (fs.existsSync(hs) && !whisperProc) startWhisperServer([...pythonCandidates], (ok) => { if(!ok) console.error('[voice] Whisper server failed'); });
   });
   const ses = mainWindow.webContents.session;
-  ses.setPermissionRequestHandler((wc, perm, cb) => cb(['camera','microphone','media','media-stream','mediaKeySystem','audioCapture','videoCapture'].includes(perm)));
-  ses.setPermissionCheckHandler((wc, perm) => ['camera','microphone','media','media-stream','mediaKeySystem','audioCapture','videoCapture'].includes(perm));
+  const ALLOWED_PERMS = ['camera','microphone','media','media-stream','mediaKeySystem','audioCapture','videoCapture','notifications'];
+  ses.setPermissionRequestHandler((wc, perm, cb) => cb(ALLOWED_PERMS.includes(perm)));
+  ses.setPermissionCheckHandler((wc, perm) => ALLOWED_PERMS.includes(perm));
 
   // Allow renderer fetch() to reach iTunes Search API and podcast RSS feeds
   ses.webRequest.onHeadersReceived({ urls: ['https://itunes.apple.com/*', 'http://*/*', 'https://*/*'] }, (details, cb) => {
