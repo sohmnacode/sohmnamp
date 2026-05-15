@@ -20,7 +20,7 @@
     "release:win": "electron-builder --win --publish always"
   },
   "devDependencies": {
-    "electron": "22.3.27",
+    "electron": "^33.0.0",
     "electron-builder": "^24.13.0"
   },
   "dependencies": {
@@ -58,7 +58,9 @@
         }
       ],
       "hardenedRuntime": true,
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "entitlementsFile": "build/entitlements.mac.plist",
+      "entitlementsInheritFile": "build/entitlements.mac.inherit.plist"
     },
     "dmg": {
       "iconSize": 120,

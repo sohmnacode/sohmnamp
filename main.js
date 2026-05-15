@@ -82,12 +82,9 @@ function createWindow() {
   });
 }
 
-// Improve compatibility on older macOS / Intel integrated graphics
-app.commandLine.appendSwitch('ignore-gpu-blacklist');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-zero-copy');
-// Allow WebAudio MediaRecorder on older Chromium builds
-app.commandLine.appendSwitch('enable-features', 'WebRTC,MediaRecorder');
 
 app.whenReady().then(createWindow);
 
