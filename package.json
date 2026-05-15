@@ -1,6 +1,6 @@
 {
   "name": "sohmnamp",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "SOHMNAMP — Immersive Cosmic Audio Visualizer",
   "main": "main.js",
   "author": "SOHMNAMP",
@@ -17,19 +17,24 @@
     "build:win": "electron-builder --win",
     "build:linux": "electron-builder --linux",
     "release:mac": "electron-builder --mac --publish always",
-    "release:win": "electron-builder --win --publish always"
+    "release:win": "electron-builder --win --publish always",
+    "build:mas": "electron-builder --mac mas --universal",
+    "build:mas:dev": "electron-builder --mac mas-dev --universal"
   },
   "devDependencies": {
-    "electron": "^33.0.0",
+    "@electron/notarize": "^3.1.1",
+    "dotenv": "^17.4.2",
+    "electron": "^42.0.1",
     "electron-builder": "^24.13.0"
   },
   "dependencies": {
     "electron-updater": "^6.1.7"
   },
   "build": {
-    "appId": "com.sohmnamp.visualizer",
+    "appId": "com.sohmna.sohmnamp",
     "productName": "SOHMNAMP",
     "copyright": "Copyright © 2026 SOHMNAMP",
+    "afterPack": "scripts/strip-xattrs.cjs",
     "directories": {
       "output": "dist"
     },
@@ -37,8 +42,13 @@
       "index.html",
       "main.js",
       "preload.js",
+      "README.html",
       "assets/**/*",
       "node_modules/electron-updater/**/*"
+    ],
+    "asarUnpack": [
+      "assets/speech_helper.py",
+      "assets/vosk-model/**/*"
     ],
     "publish": {
       "provider": "github",
@@ -51,22 +61,61 @@
       "category": "public.app-category.music",
       "darkModeSupport": true,
       "minimumSystemVersion": "10.13.6",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "notarize": false,
+      "identity": "Lawrence Ligad Jr (5S2MSRJ378)",
+      "preAutoEntitlements": false,
+      "entitlements": "entitlements_mas.plist",
+      "entitlementsInherit": "entitlements_mas.inherit.plist",
+      "extendInfo": {
+        "NSCameraUsageDescription": "SOHMNAMP uses your camera to detect hand gestures for controlling playback.",
+        "NSMicrophoneUsageDescription": "SOHMNAMP uses your microphone for voice commands and audio broadcast.",
+        "NSSpeechRecognitionUsageDescription": "SOHMNAMP uses speech recognition to understand voice commands for controlling playback.",
+        "NSDocumentsFolderUsageDescription": "SOHMNAMP reads music files you select from your Documents folder."
+      },
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "mas",
+          "arch": [
+            "universal"
+          ]
         }
-      ],
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlementsFile": "build/entitlements.mac.plist",
-      "entitlementsInheritFile": "build/entitlements.mac.inherit.plist"
+      ]
+    },
+    "mas": {
+      "type": "distribution",
+      "category": "public.app-category.music",
+      "entitlements": "entitlements_mas.plist",
+      "entitlementsInherit": "entitlements_mas.inherit.plist",
+      "hardenedRuntime": false,
+      "provisioningProfile": "embedded.provisionprofile",
+      "identity": "Lawrence Ligad Jr (5S2MSRJ378)"
+    },
+    "masDev": {
+      "type": "development",
+      "provisioningProfile": "embedded.dev.provisionprofile"
     },
     "dmg": {
+      "sign": false,
       "iconSize": 120,
       "contents": [
-        { "x": 180, "y": 220 },
-        { "x": 480, "y": 220, "type": "link", "path": "/Applications" }
+        {
+          "x": 180,
+          "y": 220
+        },
+        {
+          "x": 480,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ],
       "window": {
         "width": 660,
@@ -76,11 +125,34 @@
     },
     "win": {
       "icon": "assets/icon.ico",
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker",
+      "signAndEditExecutable": false
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "category": "Audio"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SOHMNAMP",
+      "deleteAppDataOnUninstall": false
     }
   }
 }
