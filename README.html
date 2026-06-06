@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOHMNAMP — Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&amp;family=DM+Mono:wght@300;400;500&amp;display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════
+   SOHMNAMP — VISION PRO GLASS SYSTEM
+   Deep void · frosted panels · specular rims
+   Spatial depth · gaussian translucency
+   ══════════════════════════════════════════════ */
+
+:root {
+  /* Void depth */
+  --void:       #000000;
+  --void-mid:   #060608;
+  --void-raise: #0a0a0e;
+
+  /* Glass layers — each higher = lighter + more blur */
+  --glass-0: rgba(255,255,255,0.028);
+  --glass-1: rgba(255,255,255,0.055);
+  --glass-2: rgba(255,255,255,0.08);
+  --glass-3: rgba(255,255,255,0.11);
+
+  /* Specular / rim colours */
+  --rim-top:   rgba(255,255,255,0.22);
+  --rim-side:  rgba(255,255,255,0.08);
+  --rim-inner: rgba(255,255,255,0.06);
+
+  /* Accent — one signature violet, barely there */
+  --accent:       #a78bfa;
+  --accent-dim:   rgba(167,139,250,0.12);
+  --accent-glow:  rgba(167,139,250,0.06);
+
+  /* Text scale — Vision Pro uses weight, not colour, for hierarchy */
+  --text-primary:   rgba(255,255,255,0.92);
+  --text-secondary: rgba(255,255,255,0.55);
+  --text-tertiary:  rgba(255,255,255,0.30);
+  --text-mono:      rgba(255,255,255,0.45);
+
+  /* Semantic colours — desaturated, refined */
+  --c-cyan:    #67e8f9;
+  --c-violet:  #c4b5fd;
+  --c-amber:   #fcd34d;
+  --c-rose:    #fb7185;
+  --c-lime:    #86efac;
+  --c-magenta: #f0abfc;
+  --c-revival: #a78bfa;
+
+  /* Spacing rhythm */
+  --gap-xs: 6px;
+  --gap-s:  12px;
+  --gap-m:  20px;
+  --gap-l:  40px;
+  --gap-xl: 72px;
+
+  /* Radii — visionOS uses generous rounding */
+  --r-s:  10px;
+  --r-m:  16px;
+  --r-l:  24px;
+  --r-xl: 32px;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+/* ── SCROLLBAR — barely there ── */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }
+
+/* ── BODY & AMBIENT DEPTH ── */
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--text-primary);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Subtle noise grain over the void */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.022'/%3E%3C/svg%3E");
+}
+
+/* Ambient orbs — deep in the void */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60vw 40vh at 15% 20%, rgba(88,28,255,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 50vw 35vh at 85% 75%, rgba(167,139,250,0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 40vw 30vh at 50% 50%, rgba(0,180,255,0.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LAYOUT ── */
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 80px 28px 140px;
+}
+
+/* ══════════════════════════════════════════════
+   GLASS PANEL MIXIN — the core visual unit
+   ══════════════════════════════════════════════ */
+.glass {
+  background: var(--glass-1);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-radius: var(--r-l);
+  border: 1px solid rgba(255,255,255,0.09);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Specular rim — bright line across the very top */
+.glass::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 12px; right: 12px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--rim-top) 20%,
+    rgba(255,255,255,0.5) 50%,
+    var(--rim-top) 80%,
+    transparent 100%);
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Inner side gloss — subtle left/right rims */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,0.06) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255,255,255,0.03) 100%);
+  pointer-events: none;
+  z-index: 9;
+}
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  padding: 96px 0 72px;
+  position: relative;
+}
+
+.hero-orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-60%);
+  width: 500px;
+  height: 300px;
+  background: radial-gradient(ellipse, rgba(167,139,250,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.logo-lockup {
+  position: relative;
+  display: inline-block;
+}
+
+.logo {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 200;
+  font-size: clamp(44px, 8vw, 76px);
+  letter-spacing: 0.22em;
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.95) 0%,
+    rgba(255,255,255,0.75) 40%,
+    rgba(167,139,250,0.9) 70%,
+    rgba(196,181,253,0.7) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  /* Subtle text emboss */
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.5)) drop-shadow(0 0 60px rgba(167,139,250,0.2));
+  animation: breathe 6s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,100% { filter: drop-shadow(0 1px 0 rgba(0,0,0,0.5)) drop-shadow(0 0 40px rgba(167,139,250,0.15)); }
+  50%      { filter: drop-shadow(0 1px 0 rgba(0,0,0,0.5)) drop-shadow(0 0 80px rgba(167,139,250,0.30)); }
+}
+
+.tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 300;
+  color: var(--text-tertiary);
+  letter-spacing: 0.35em;
+  margin-top: 14px;
+  text-transform: uppercase;
+}
+
+.hero-desc {
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  max-width: 560px;
+  margin: 28px auto 0;
+  line-height: 1.8;
+}
+
+.hero-pills {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Hero separator — gossamer */
+.hero-rule {
+  margin: 64px auto 0;
+  max-width: 600px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.08) 20%,
+    rgba(167,139,250,0.2) 50%,
+    rgba(255,255,255,0.08) 80%,
+    transparent 100%);
+}
+
+/* ── PILLS ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  background: var(--glass-1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, color 0.2s;
+}
+.pill::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 8px; right: 8px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  border-radius: 999px;
+}
+.pill-accent { border-color: rgba(167,139,250,0.3); color: var(--c-revival); }
+.pill-cyan   { border-color: rgba(103,232,249,0.2); color: var(--c-cyan); }
+.pill-violet { border-color: rgba(196,181,253,0.2); color: var(--c-violet); }
+.pill-amber  { border-color: rgba(252,211,77,0.2);  color: var(--c-amber); }
+.pill-rose   { border-color: rgba(251,113,133,0.2); color: var(--c-rose); }
+.pill-lime   { border-color: rgba(134,239,172,0.2); color: var(--c-lime); }
+.pill-mag    { border-color: rgba(240,171,252,0.2); color: var(--c-magenta); }
+
+/* ── NEW BADGE ── */
+.new {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 7.5px;
+  letter-spacing: 0.1em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(167,139,250,0.12);
+  border: 1px solid rgba(167,139,250,0.3);
+  color: var(--c-revival);
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+/* ── TABLE OF CONTENTS ── */
+.toc {
+  padding: 32px 36px;
+  margin-top: 56px;
+}
+
+.toc-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.toc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2px 24px;
+}
+
+.toc a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: color 0.15s;
+  letter-spacing: 0.01em;
+}
+.toc a::before {
+  content: '›';
+  color: rgba(167,139,250,0.4);
+  font-size: 14px;
+  line-height: 1;
+}
+.toc a:hover { color: rgba(255,255,255,0.7); }
+
+/* ── SECTIONS ── */
+section { margin-top: var(--gap-xl); }
+
+.section-wrap {
+  padding: 36px 40px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.section-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-s);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  background: var(--glass-2);
+  border: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  overflow: hidden;
+}
+.section-icon::before {
+  content: '';
+  position: absolute;
+  top:0; left:3px; right:3px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+}
+
+h2 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+h3 {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 28px 0 14px;
+}
+
+.accent-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.06), transparent);
+}
+
+p {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  font-size: 14.5px;
+  font-weight: 300;
+  line-height: 1.75;
+}
+
+p strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ── CALLOUT ── */
+.callout {
+  background: rgba(167,139,250,0.06);
+  border: 1px solid rgba(167,139,250,0.18);
+  border-radius: var(--r-m);
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.callout::before {
+  content: '';
+  position: absolute;
+  top:0; left:10px; right:10px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(167,139,250,0.5), transparent);
+}
+.callout p { margin-bottom: 0; font-size: 13.5px; }
+
+/* ── RELEASE CARDS ── */
+.release-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.release-card {
+  background: rgba(255,255,255,0.045);
+  backdrop-filter: blur(30px) saturate(160%);
+  -webkit-backdrop-filter: blur(30px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.085);
+  border-radius: var(--r-l);
+  padding: 22px 22px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.release-card::before {
+  content: '';
+  position: absolute;
+  top:0; left:12px; right:12px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.32), transparent);
+}
+
+.release-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
+}
+
+.release-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.release-body {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.release-table td:first-child {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+code {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.9em;
+  color: rgba(255,255,255,0.72);
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.075);
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+
+/* ── TABLES ── */
+.table-wrap {
+  border-radius: var(--r-m);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.07);
+  margin-bottom: 20px;
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(20px);
+  position: relative;
+}
+.table-wrap::before {
+  content: '';
+  position: absolute;
+  top:0; left:12px; right:12px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  z-index:1;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead tr {
+  background: rgba(255,255,255,0.03);
+}
+
+thead th {
+  padding: 11px 18px;
+  text-align: left;
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Accent thead colours */
+.t-accent  thead th { color: var(--c-revival); }
+.t-cyan    thead th { color: var(--c-cyan); }
+.t-violet  thead th { color: var(--c-violet); }
+.t-amber   thead th { color: var(--c-amber); }
+.t-rose    thead th { color: var(--c-rose); }
+.t-lime    thead th { color: var(--c-lime); }
+.t-mag     thead th { color: var(--c-magenta); }
+.t-pink    thead th { color: #f9a8d4; }
+
+tbody tr:not(:last-child) td {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+tbody tr:hover { background: rgba(255,255,255,0.018); }
+
+td {
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 300;
+  vertical-align: top;
+  color: var(--text-secondary);
+}
+
+td:first-child {
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+td em {
+  font-style: normal;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 300;
+}
+
+/* Per-table first-col tint */
+.t-accent  td:first-child { color: var(--c-revival); }
+.t-cyan    td:first-child { color: var(--c-cyan); }
+.t-violet  td:first-child { color: var(--c-violet); }
+.t-amber   td:first-child { color: var(--c-amber); }
+.t-rose    td:first-child { color: var(--c-rose); }
+.t-lime    td:first-child { color: var(--c-lime); }
+.t-mag     td:first-child { color: var(--c-magenta); }
+.t-pink    td:first-child { color: #f9a8d4; }
+
+/* ── SIGNAL CHAIN ── */
+.chain {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 20px 24px;
+  border-radius: var(--r-m);
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.07);
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.chain::before {
+  content: '';
+  position: absolute;
+  top:0; left:12px; right:12px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+}
+
+.cn {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 5px 13px;
+  border-radius: var(--r-s);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  position: relative;
+  overflow: hidden;
+}
+.cn::before {
+  content: '';
+  position: absolute;
+  top:0; left:4px; right:4px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+}
+.cn-src  { color: var(--c-cyan);   background:rgba(103,232,249,0.08);  border:1px solid rgba(103,232,249,0.18); }
+.cn-proc { color: var(--c-violet); background:rgba(196,181,253,0.08); border:1px solid rgba(196,181,253,0.18); }
+.cn-fx   { color: var(--c-amber);  background:rgba(252,211,77,0.07);   border:1px solid rgba(252,211,77,0.16); }
+.cn-out  { color: var(--c-lime);   background:rgba(134,239,172,0.07);  border:1px solid rgba(134,239,172,0.16); }
+.cn-arr  { color: var(--text-tertiary); padding: 0 8px; font-size: 13px; }
+
+/* ── KBD ── */
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  background: var(--glass-2);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.75);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0 1px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+kbd::before {
+  content: '';
+  position: absolute;
+  top:0; left:3px; right:3px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+}
+
+/* ── KB GRID ── */
+.kb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.kb-card {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--r-m);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+}
+.kb-card::before {
+  content: '';
+  position: absolute;
+  top:0; left:10px; right:10px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+.kb-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.kb-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+  font-size: 12.5px;
+  font-weight: 300;
+  color: var(--text-secondary);
+}
+.kb-row span { margin-left: auto; font-size: 11.5px; color: var(--text-tertiary); text-align: right; }
+
+/* ── BENEFIT GRID ── */
+.benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.benefit-card {
+  background: var(--glass-1);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r-l);
+  padding: 24px 24px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s, background 0.25s;
+}
+.benefit-card:hover {
+  background: var(--glass-2);
+  border-color: rgba(255,255,255,0.14);
+}
+.benefit-card::before {
+  content: '';
+  position: absolute;
+  top:0; left:12px; right:12px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+}
+
+.benefit-icon { font-size: 22px; margin-bottom: 12px; }
+.benefit-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.benefit-body { font-size: 13px; font-weight: 300; color: var(--text-secondary); line-height: 1.65; }
+
+/* ── SWATCH GRID ── */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.swatch-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--glass-1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--r-s);
+  padding: 9px 13px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, color 0.2s;
+}
+.swatch-chip::before {
+  content: '';
+  position: absolute;
+  top:0; left:5px; right:5px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+.swatch-chip:hover { border-color: rgba(255,255,255,0.14); color: var(--text-secondary); }
+
+.swatch-chip.featured {
+  border-color: rgba(167,139,250,0.35);
+  background: rgba(167,139,250,0.07);
+  color: var(--c-revival);
+}
+.swatch-chip.featured::before {
+  background: linear-gradient(90deg, transparent, rgba(167,139,250,0.5), transparent);
+}
+
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 5px currentColor;
+}
+
+/* ── MOOD TABLE ROW COLOURS ── */
+.m-euphoric   td:first-child { color: #f0abfc; }
+.m-energetic  td:first-child { color: #fb7185; }
+.m-aggressive td:first-child { color: #fb923c; }
+.m-tense      td:first-child { color: #e879f9; }
+.m-melancholic td:first-child { color: #60a5fa; }
+.m-serene     td:first-child { color: #67e8f9; }
+.m-dreamy     td:first-child { color: #c4b5fd; }
+.m-mysterious td:first-child { color: #a78bfa; }
+
+.speed-fast { color: var(--c-rose); font-weight: 500; }
+.speed-slow { color: var(--c-cyan); font-weight: 500; }
+.speed-mid  { color: var(--c-amber); font-weight: 500; }
+
+/* ── DIVIDER ── */
+.divider {
+  margin: 72px 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.05) 20%,
+    rgba(167,139,250,0.12) 50%,
+    rgba(255,255,255,0.05) 80%,
+    transparent 100%);
+}
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 64px 0 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.footer-logo {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 200;
+  font-size: 28px;
+  letter-spacing: 0.3em;
+  background: linear-gradient(120deg,
+    rgba(255,255,255,0.6) 0%,
+    var(--c-revival) 50%,
+    rgba(255,255,255,0.5) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+}
+
+.footer-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.footer-tagline {
+  font-size: 13px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-tertiary);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .wrap { padding: 48px 18px 100px; }
+  .section-wrap { padding: 24px 22px; }
+  .toc-grid { grid-template-columns: 1fr; }
+  .kb-grid { grid-template-columns: 1fr; }
+}
+
+/* ── ENTRY ANIMATION ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.hero { animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+.toc  { animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
+section { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══ HERO ═══ -->
+  <div class="hero">
+    <div class="hero-orb"></div>
+    <div class="logo-lockup">
+      <div class="logo">SOHMNAMP</div>
+    </div>
+    <div class="tagline">v4.0.4 &nbsp;·&nbsp; vision pro release &nbsp;·&nbsp; cosmic audio</div>
+    <p class="hero-desc">A desktop audio player, live radio and podcast browser, native video companion, and real-time 3D visualizer — now shipping on Mac and Windows via automated GitHub Actions CI with signed DMG and NSIS EXE direct downloads.</p>
+    <div class="hero-pills">
+      <span class="pill pill-accent">Local-First</span>
+      <span class="pill pill-violet">Web Audio</span>
+      <span class="pill pill-cyan">Electron Desktop</span>
+      <span class="pill pill-amber">Three.js Visuals</span>
+      <span class="pill pill-lime">Universal DMG</span>
+      <span class="pill pill-rose">Windows EXE</span>
+      <span class="pill">No Account</span>
+    </div>
+    <div class="hero-rule"></div>
+  </div>
+
+  <!-- ═══ TOC ═══ -->
+  <div class="glass toc">
+    <div class="toc-label">Contents</div>
+    <div class="toc-grid">
+      <a href="#overview">Overview &amp; Benefits</a>
+      <a href="#release">What's New in 4.0.4</a>
+      <a href="#playback">Audio Playback</a>
+      <a href="#signal">Signal Chain</a>
+      <a href="#visualizers">Visualizer Modes</a>
+      <a href="#mood">Mood-Adaptive Engine</a>
+      <a href="#gesture">Gesture Control</a>
+      <a href="#voice">Voice Control</a>
+      <a href="#eq">10-Band Equalizer</a>
+      <a href="#reverb">Reverb Engine</a>
+      <a href="#playlist">Playlist Management</a>
+      <a href="#video">Video Playback</a>
+      <a href="#radio">Radio &amp; URL Streaming</a>
+      <a href="#podcasts">Podcasts</a>
+      <a href="#bpm">BPM &amp; Key Detection</a>
+      <a href="#skins">UI Skins (26)</a>
+      <a href="#viz-themes">Visualizer Themes</a>
+      <a href="#recording">Recording &amp; Broadcasting</a>
+      <a href="#display">Display Modes</a>
+      <a href="#shortcuts">Keyboard Shortcuts</a>
+      <a href="#tech">Technical Architecture</a>
+    </div>
+  </div>
+
+  <!-- ═══ OVERVIEW ═══ -->
+  <section id="overview">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-revival)">◈</div>
+        <h2>Overview &amp; Benefits</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>SOHMNAMP is built on the <strong>Web Audio API</strong> and <strong>Three.js</strong>, delivered inside an Electron desktop app. Version <strong>4.0.4</strong> ships as a signed macOS DMG and a Windows x64 setup EXE, with local playback, live streams, podcasts, native video playback, and a visualizer-first interface. Your local files stay on your machine; network access is used only when you browse radio stations, podcasts, or external stream URLs.</p>
+      <div class="benefit-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon">⚡</div>
+          <div class="benefit-title" style="color:var(--c-cyan)">Zero Setup</div>
+          <div class="benefit-body">Open the app, drop audio or video, browse stations, or import a stream URL. No account or cloud library required.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">🔒</div>
+          <div class="benefit-title" style="color:var(--c-violet)">Local Processing</div>
+          <div class="benefit-body">Playback, EQ, reverb, file analysis, recording, playlist bundles, and visualizer rendering happen locally in the app.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">🎛</div>
+          <div class="benefit-title" style="color:var(--c-amber)">Producer-Grade Tools</div>
+          <div class="benefit-body">10-band EQ, algorithmic convolution reverb, BPM detection, key detection, crossfade, repeat modes, and real-time 3D visuals.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">🌐</div>
+          <div class="benefit-title" style="color:var(--c-rose)">100,000+ Radio Stations</div>
+          <div class="benefit-body">Live streaming via RadioBrowser across 25+ genre tabs. Real-time BPM estimation and mood engine work on streams too.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">✨</div>
+          <div class="benefit-title" style="color:var(--c-lime)">Real-Time 3D Visuals</div>
+          <div class="benefit-body">13 WebGL visualizer modes, 22 color themes, and a mood engine that reads the audio's emotional signature and shifts the visuals live.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">🎙</div>
+          <div class="benefit-title" style="color:var(--c-revival)">Voice Control</div>
+          <div class="benefit-body">Whisper-powered local speech recognition with optional Claude intent parsing when an Anthropic API key is supplied.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">🎥</div>
+          <div class="benefit-title" style="color:var(--c-magenta)">Creator-Ready</div>
+          <div class="benefit-body">Record the master audio output, open a dedicated broadcast window for capture, and show now-playing notifications with album art.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RELEASE NOTES ═══ -->
+  <section id="release">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-revival)">✧</div>
+        <h2>What's New in 4.0.4 <span class="new">New</span></h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Version <strong>4.0.4</strong> is a cross-platform distribution release. Mac and Windows builds now ship automatically via GitHub Actions CI — push a version tag and both a signed macOS DMG and a Windows NSIS EXE are built in parallel and published to GitHub Releases for direct download.</p>
+      <div class="release-grid">
+        <div class="release-card">
+          <div class="release-kicker">CI / Automation</div>
+          <div class="release-title" style="color:var(--c-cyan)">GitHub Actions Release Pipeline</div>
+          <div class="release-body">Two parallel workflows — <code>build-mac</code> and <code>build-windows</code> — run on every version tag. Both artifacts are published to a GitHub Release automatically with no manual steps.</div>
+        </div>
+        <div class="release-card">
+          <div class="release-kicker">Windows</div>
+          <div class="release-title" style="color:var(--c-rose)">Direct Download EXE</div>
+          <div class="release-body">Windows x64 NSIS installer built on a real Windows runner, with Start Menu and Desktop shortcuts, selectable install directory, and bundled update metadata.</div>
+        </div>
+        <div class="release-card">
+          <div class="release-kicker">macOS</div>
+          <div class="release-title" style="color:var(--c-lime)">Signed arm64 DMG</div>
+          <div class="release-body">macOS arm64 DMG built and signed on CI with your Developer ID certificate, notarization-ready, with blockmap and auto-update metadata attached to the release.</div>
+        </div>
+        <div class="release-card">
+          <div class="release-kicker">Video</div>
+          <div class="release-title" style="color:var(--c-violet)">Native Video Window</div>
+          <div class="release-body">Local video opens in a dedicated Electron video window. The in-player panel adds size presets, fullscreen video, Picture-in-Picture, and cleaner drag/drop routing.</div>
+        </div>
+        <div class="release-card">
+          <div class="release-kicker">App Store</div>
+          <div class="release-title" style="color:var(--c-amber)">MAS Readiness</div>
+          <div class="release-body">Mac App Store builds use dedicated MAS entitlements, hardened runtime settings, JITless mode, sandbox-aware media permissions, and a verification script.</div>
+        </div>
+        <div class="release-card">
+          <div class="release-kicker">Creator</div>
+          <div class="release-title" style="color:var(--c-magenta)">Broadcast Polish</div>
+          <div class="release-body">The broadcast monitor opens from a generated Blob page and attaches the captured canvas/audio stream after load for steadier OBS and window-capture workflows.</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="t-accent release-table">
+          <thead><tr><th>Release File</th><th>Platform</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>SOHMNAMP-4.0.4-arm64.dmg</td><td><em>macOS Apple Silicon</em></td><td><em>Direct Mac install — Developer ID signed</em></td></tr>
+            <tr><td>SOHMNAMP-Setup-4.0.4.exe</td><td><em>Windows x64</em></td><td><em>Direct Windows install — NSIS with shortcuts</em></td></tr>
+            <tr><td>latest-mac.yml</td><td><em>macOS</em></td><td><em>Auto-update metadata for Electron Updater</em></td></tr>
+            <tr><td>latest.yml</td><td><em>Windows</em></td><td><em>Auto-update metadata for Electron Updater</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ AUDIO PLAYBACK ═══ -->
+  <section id="playback">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-cyan)">▶</div>
+        <h2>Audio Playback</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Full-featured player built on the <strong>Web Audio API</strong>. Supports every audio format Chromium can decode — MP3, AAC, FLAC, WAV, OGG, M4A — plus direct audio stream URLs, podcast episodes, and live radio streams. Volume, skin, always-on-top state, favorites, and playlists persist between sessions.</p>
+      <div class="table-wrap">
+        <table class="t-cyan">
+          <thead><tr><th>Control</th><th>Symbol</th><th>Behaviour</th></tr></thead>
+          <tbody>
+            <tr><td>Play / Pause</td><td>▶ ⏸</td><td><em>Toggles playback. Resumes AudioContext if suspended by browser autoplay policy</em></td></tr>
+            <tr><td>Stop</td><td>⏹</td><td><em>Stops and resets position to 00:00</em></td></tr>
+            <tr><td>Previous</td><td>⏮</td><td><em>Goes to previous track. If more than 3 s have played, restarts current track first</em></td></tr>
+            <tr><td>Next</td><td>⏭</td><td><em>Advances to next track. Picks randomly if shuffle is active</em></td></tr>
+            <tr><td>Repeat Track</td><td>↺</td><td><em>Loops the current track indefinitely</em></td></tr>
+            <tr><td>Repeat Playlist</td><td>⟳</td><td><em>Loops back to track 1 when the last track ends</em></td></tr>
+            <tr><td>Shuffle</td><td>⇅</td><td><em>Randomises track selection on each auto-advance</em></td></tr>
+            <tr><td>Crossfade</td><td>0–10 s</td><td><em>Smooth DJ-style gain overlap between tracks via dual gain nodes</em></td></tr>
+            <tr><td>Volume</td><td>Slider</td><td><em>Controls the master gain node — independent of system volume</em></td></tr>
+            <tr><td>Progress Bar</td><td>Click</td><td><em>Clickable seeking in normal, mini, and fullscreen modes</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Supported formats:</strong>&nbsp;
+        <span class="pill pill-cyan">MP3</span>
+        <span class="pill pill-cyan">AAC</span>
+        <span class="pill pill-cyan">FLAC</span>
+        <span class="pill pill-cyan">WAV</span>
+        <span class="pill pill-cyan">OGG</span>
+        <span class="pill pill-cyan">M4A</span>
+        <span class="pill">MP3 Stream</span>
+        <span class="pill">Podcast RSS</span>
+        <span class="pill">Radio Streams</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ SIGNAL CHAIN ═══ -->
+  <section id="signal">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-violet)">⟿</div>
+        <h2>Audio Signal Chain</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Every node runs natively in the <strong>Web Audio API</strong>. The analyser sits before the EQ so it captures the raw signal for visualizer reactivity. The EQ shapes before reverb, meaning the reverb tail is also EQ'd.</p>
+      <div class="chain">
+        <span class="cn cn-src">Source</span><span class="cn-arr">→</span>
+        <span class="cn cn-proc">Analyser</span><span class="cn-arr">→</span>
+        <span class="cn cn-proc">10-Band EQ</span><span class="cn-arr">→</span>
+        <span class="cn cn-fx">Convolution Reverb</span><span class="cn-arr">→</span>
+        <span class="cn cn-fx">Gain Node</span><span class="cn-arr">→</span>
+        <span class="cn cn-out">Output</span><span class="cn-arr">+</span>
+        <span class="cn cn-out">Recording Tap</span>
+      </div>
+      <p>The <strong>Recording Tap</strong> branches from the master gain node into a MediaStreamDestination, capturing exactly what you hear — EQ, reverb, and all.</p>
+    </div>
+  </section>
+
+  <!-- ═══ VISUALIZERS ═══ -->
+  <section id="visualizers">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-violet)">✦</div>
+        <h2>Visualizer Modes (13)</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>All 13 modes run in real-time <strong>WebGL</strong> via Three.js with custom GLSL shaders. Every mode reacts to bass, mids, highs, and energy every frame. Switch live — including in fullscreen — with keyboard shortcuts.</p>
+      <div class="table-wrap">
+        <table class="t-violet">
+          <thead><tr><th>Key</th><th>Mode</th><th>Technique</th><th>Audio Reactivity</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Nebula</td><td><em>3,000-particle swirling cloud with orbital rotation</em></td><td><em>Bass pulses size · Energy drives opacity</em></td></tr>
+            <tr><td>2</td><td>Galaxy</td><td><em>5,000-particle spiral arms with spin dynamics</em></td><td><em>Mid frequencies drive arm spin speed</em></td></tr>
+            <tr><td>3</td><td>Supernova</td><td><em>4,000-particle radial explosion from origin</em></td><td><em>Bass detonates burst scale · Highs add shimmer</em></td></tr>
+            <tr><td>4</td><td>Cosmos</td><td><em>Multi-layer depth field of drifting star clusters</em></td><td><em>Bass shifts layers · Energy controls twinkle</em></td></tr>
+            <tr><td>5</td><td>Stardust</td><td><em>Flowing 3,500-particle stream through space</em></td><td><em>High frequencies warp the stream path</em></td></tr>
+            <tr><td>6</td><td>Crystal</td><td><em>Geometric mesh surface with vertex displacement</em></td><td><em>All bands deform the mesh independently</em></td></tr>
+            <tr><td>7</td><td>Aurora</td><td><em>Reactive wireframe aurora plane with shader displacement</em></td><td><em>Bass and mids lift the plane · Highs brighten the field</em></td></tr>
+            <tr><td>8</td><td>Stars</td><td><em>Deep-space star field with layered parallax</em></td><td><em>Highs control twinkle · Bass moves camera</em></td></tr>
+            <tr><td>9</td><td>Plasma</td><td><em>Full-screen sine-wave plasma GLSL shader</em></td><td><em>Entire spectrum drives interference patterns</em></td></tr>
+            <tr><td>0</td><td>Waveform</td><td><em>3D time-domain waveform ribbon in space</em></td><td><em>Direct waveform mapping from analyser buffer</em></td></tr>
+            <tr><td>Q</td><td>Terrain</td><td><em>Procedural mountain landscape with per-vertex audio</em></td><td><em>Bass raises peaks · Mids shift terrain waves</em></td></tr>
+            <tr><td>W</td><td>Rings</td><td><em>Concentric expanding ripple rings</em></td><td><em>Bass fires rings · Energy sets ring speed</em></td></tr>
+            <tr><td>E</td><td>Spatial</td><td><em>Frequency-mapped spatial field with live GPU texture</em></td><td><em>512-bin spectrum uploaded as GPU texture each frame</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><span class="pill pill-rose">Auto Shuffle</span>&nbsp; Click <strong>⟳ AUTO</strong> to rotate through all 13 modes every 8 seconds. Press <kbd>V</kbd> to manually cycle forward.</p>
+    </div>
+  </section>
+
+  <!-- ═══ MOOD ENGINE ═══ -->
+  <section id="mood">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:#f9a8d4">♠</div>
+        <h2>Mood-Adaptive Visualizer</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Activate with <strong>♠ MOOD</strong>. The engine analyses the audio's emotional signature — tempo, key mode, energy, brightness, and sub-bass — in real-time, then shifts the visualizer's palette and animation speed to match. Speed transitions ease smoothly while the music plays.</p>
+      <div class="table-wrap">
+        <table class="t-pink">
+          <thead><tr><th>Mood</th><th>Viz Theme</th><th>Speed</th><th>Triggered By</th></tr></thead>
+          <tbody>
+            <tr class="m-euphoric"><td>EUPHORIC</td><td><em>Candy (pink-purple)</em></td><td><span class="speed-fast">1.6×</span></td><td><em>Fast tempo · major key · bright highs · high energy</em></td></tr>
+            <tr class="m-energetic"><td>ENERGETIC</td><td><em>Inferno (red-orange)</em></td><td><span class="speed-fast">1.5×</span></td><td><em>High energy · heavy sub-bass · fast BPM</em></td></tr>
+            <tr class="m-aggressive"><td>AGGRESSIVE</td><td><em>Inferno (red-orange)</em></td><td><span class="speed-fast">1.7×</span></td><td><em>Very fast · sub-bass dominant · minor key</em></td></tr>
+            <tr class="m-tense"><td>TENSE</td><td><em>Blood (crimson)</em></td><td><span class="speed-mid">1.3×</span></td><td><em>Mid-fast · minor key · dense mid frequencies</em></td></tr>
+            <tr class="m-melancholic"><td>MELANCHOLIC</td><td><em>Midnight (deep blue)</em></td><td><span class="speed-slow">0.6×</span></td><td><em>Slow tempo · minor key · low energy · dark spectrum</em></td></tr>
+            <tr class="m-serene"><td>SERENE</td><td><em>Ice (pale blue)</em></td><td><span class="speed-slow">0.5×</span></td><td><em>Slow · major key · quiet · bright highs</em></td></tr>
+            <tr class="m-dreamy"><td>DREAMY</td><td><em>Aurora (soft violet)</em></td><td><span class="speed-slow">0.7×</span></td><td><em>Slow · low energy · rich mids · any key</em></td></tr>
+            <tr class="m-mysterious"><td>MYSTERIOUS</td><td><em>Violet (dark purple)</em></td><td><span class="speed-slow">0.8×</span></td><td><em>Slow · minor key · bass-heavy · low highs</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Audio Features Used</h3>
+      <div class="table-wrap">
+        <table class="t-pink">
+          <thead><tr><th>Feature</th><th>How It's Measured</th><th>Contributes To</th></tr></thead>
+          <tbody>
+            <tr><td>Tempo (BPM)</td><td><em>File analysis or live estimator (streams)</em></td><td><em>Fast / slow mood axis</em></td></tr>
+            <tr><td>Key Mode</td><td><em>Krumhansl-Schmuckler chroma analysis</em></td><td><em>Major = bright · Minor = dark</em></td></tr>
+            <tr><td>Energy</td><td><em>Weighted sum of bass + mid + high RMS</em></td><td><em>Intensity axis across all moods</em></td></tr>
+            <tr><td>Brightness</td><td><em>High-freq energy ÷ total energy</em></td><td><em>Euphoric / Serene vs Mysterious</em></td></tr>
+            <tr><td>Sub-bass</td><td><em>RMS of lowest 3% of frequency bins (~0–80 Hz)</em></td><td><em>Aggressive / Energetic drive</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><span class="pill pill-rose">Note</span>&nbsp; When MOOD is active the Viz color selector is locked. Turning MOOD off re-enables manual theme selection.</p>
+    </div>
+  </section>
+
+  <!-- ═══ GESTURE ═══ -->
+  <section id="gesture">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-cyan)">✋</div>
+        <h2>Gesture Control</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Activate with <strong>✋ GESTURE</strong>. Uses your webcam and <strong>MediaPipe Hands</strong> to detect 21 hand landmarks in real-time. No special hardware — just a webcam and decent lighting.</p>
+      <div class="table-wrap">
+        <table class="t-cyan">
+          <thead><tr><th>Gesture</th><th>Action</th><th>Parameters</th></tr></thead>
+          <tbody>
+            <tr><td>✋ Open Hand</td><td><em>Play / Pause</em></td><td><em>All 5 fingers extended</em></td></tr>
+            <tr><td>✌️ Peace Sign</td><td><em>Next Track</em></td><td><em>Index + middle extended</em></td></tr>
+            <tr><td>🤘 Rock Sign</td><td><em>Previous Track</em></td><td><em>Index + pinky extended</em></td></tr>
+            <tr><td>✊ Fist</td><td><em>Stop</em></td><td><em>All fingers curled</em></td></tr>
+            <tr><td>👍 Thumb Up</td><td><em>Volume Up</em></td><td><em>Thumb raised, fingers curled</em></td></tr>
+            <tr><td>👎 Thumb Down</td><td><em>Volume Down</em></td><td><em>Thumb lowered, fingers curled</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table class="t-cyan">
+          <thead><tr><th>Parameter</th><th>Value</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Dwell Time</td><td><em>600 ms</em></td><td><em>Gesture must be held this long before firing</em></td></tr>
+            <tr><td>Smooth Window</td><td><em>6 frames</em></td><td><em>Rolling vote buffer size for classification</em></td></tr>
+            <tr><td>Vote Threshold</td><td><em>60%</em></td><td><em>Gesture must dominate this fraction of frames</em></td></tr>
+            <tr><td>Cooldown</td><td><em>1,500 ms</em></td><td><em>Minimum gap between any two actions</em></td></tr>
+            <tr><td>Detection Confidence</td><td><em>0.75</em></td><td><em>MediaPipe minimum hand detection threshold</em></td></tr>
+            <tr><td>Tracking Confidence</td><td><em>0.65</em></td><td><em>MediaPipe minimum tracking threshold</em></td></tr>
+            <tr><td>Fallback Mode</td><td><em>Motion detection</em></td><td><em>Used if MediaPipe fails to load</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ VOICE CONTROL ═══ -->
+  <section id="voice">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-revival)">🎙</div>
+        <h2>Voice Control <span class="new">New</span></h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Powered by <strong>Whisper</strong> running on-device via a persistent Python subprocess. Activate with <strong>🎙 VOICE</strong> or the global shortcut <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> / <kbd>Ctrl</kbd><kbd>⇧</kbd><kbd>V</kbd>. If <code>ANTHROPIC_API_KEY</code> is present, Claude Haiku can parse richer natural-language commands before the regex fallback runs.</p>
+      <div class="callout">
+        <p><strong>How it works:</strong> Voice mode pauses and mutes app audio, opens the selected microphone, watches for speech with a VAD loop, records the utterance, converts it to 16 kHz mono WAV, pipes it to the warm Whisper process, then restores playback after the command is handled.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="t-accent">
+          <thead><tr><th>Command</th><th>Examples</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Play / Pause</td><td><em>"play", "pause", "stop"</em></td><td><em>Toggles or stops playback</em></td></tr>
+            <tr><td>Navigation</td><td><em>"next", "previous", "skip"</em></td><td><em>Moves to next or previous track</em></td></tr>
+            <tr><td>Volume</td><td><em>"volume up", "louder", "quieter", "mute"</em></td><td><em>Adjusts master gain</em></td></tr>
+            <tr><td>Search</td><td><em>"play [artist/title]"</em></td><td><em>With Claude intent parsing, searches the playlist and jumps to a matching track</em></td></tr>
+            <tr><td>Shuffle</td><td><em>"shuffle on", "shuffle off"</em></td><td><em>Toggles shuffle mode</em></td></tr>
+            <tr><td>Repeat</td><td><em>"repeat on", "repeat off"</em></td><td><em>Toggles repeat-track mode</em></td></tr>
+            <tr><td>Seek</td><td><em>"skip forward", "skip back"</em></td><td><em>Moves the current track by 10 seconds</em></td></tr>
+            <tr><td>Fullscreen</td><td><em>"fullscreen", "windowed"</em></td><td><em>Enters or exits fullscreen visualizer mode</em></td></tr>
+            <tr><td>Visualizer</td><td><em>"nebula", "aurora", "galaxy"</em></td><td><em>Switches to named visualizer mode</em></td></tr>
+            <tr><td>Voice</td><td><em>"voice off", "stop listening"</em></td><td><em>Stops the microphone listener</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The Whisper server stays warm between commands for faster response. Voice and gesture controls are hidden in Mac App Store builds where camera and microphone access are disabled.</p>
+    </div>
+  </section>
+
+  <!-- ═══ EQUALIZER ═══ -->
+  <section id="eq">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-amber)">≋</div>
+        <h2>10-Band Equalizer</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>A full <strong>10-band parametric EQ</strong> with ±12 dB per band. It shapes the audio output before reverb while the visualizer reads the raw pre-EQ analyser signal for consistent reactivity. Use the EQ panel's ON button to bypass or re-enable it.</p>
+      <div class="table-wrap">
+        <table class="t-amber">
+          <thead><tr><th>Band</th><th>Frequency</th><th>Filter Type</th><th>Range</th></tr></thead>
+          <tbody>
+            <tr><td>Sub Bass</td><td><em>32 Hz</em></td><td><em>Low Shelf</em></td><td><em>±12 dB</em></td></tr>
+            <tr><td>Bass</td><td><em>64 Hz</em></td><td><em>Peaking</em></td><td><em>±12 dB</em></td></tr>
+            <tr><td>Upper Bass</td><td><em>125 Hz</em></td><td><em>Peaking</em></td><td><em>±12 dB</em></td></tr>
+            <tr><td>Low Mid</td><td><em>250 Hz</em></td><td><em>Peaking</em></td><td><em>±12 dB</em></td></tr>
+            <tr><td>Mid</td><td><em>500 Hz</em></td><td><em>Peaking</em></td><td><em>±12 dB</em></td></tr>
+            <tr><td>Upper Mid</td><td><em>1 kHz</em></td><td><em>Peaking</em></td><td><em>±12 dB</em></td></tr>
+            <tr><td>Presence</td><td><em>2 kHz</em></td><td><em>Peaking</em></td><td><em>±12 dB</em></td></tr>
+            <tr><td>Brilliance</td><td><em>4 kHz</em></td><td><em>Peaking</em></td><td><em>±12 dB</em></td></tr>
+            <tr><td>Air</td><td><em>8 kHz</em></td><td><em>Peaking</em></td><td><em>±12 dB</em></td></tr>
+            <tr><td>Ultra High</td><td><em>16 kHz</em></td><td><em>High Shelf</em></td><td><em>±12 dB</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Presets</h3>
+      <div class="table-wrap">
+        <table class="t-amber">
+          <thead><tr><th>Preset</th><th>Character</th></tr></thead>
+          <tbody>
+            <tr><td>Flat</td><td><em>All bands at 0 dB — fully transparent</em></td></tr>
+            <tr><td>Bass Boost</td><td><em>Heavy sub and bass lift (+8/+6/+4/+2) for electronic and hip-hop</em></td></tr>
+            <tr><td>Treble Boost</td><td><em>Upper band emphasis (+5/+7/+8) for air and detail</em></td></tr>
+            <tr><td>Vocal</td><td><em>Mid-presence bump (+5 at 500 Hz–1 kHz) for clarity in vocal content</em></td></tr>
+            <tr><td>Electronic</td><td><em>Scooped mids, boosted lows and highs — classic club curve</em></td></tr>
+            <tr><td>Rock</td><td><em>Classic V-shape with guitar presence</em></td></tr>
+            <tr><td>Jazz</td><td><em>Warm low-mids, gentle high roll-off</em></td></tr>
+            <tr><td>Classical</td><td><em>Subtle high lift for orchestral clarity</em></td></tr>
+            <tr><td>Lo-Fi</td><td><em>Bandwidth-limited warm vintage tone</em></td></tr>
+            <tr><td>Concert</td><td><em>Live room simulation — sub and presence lift</em></td></tr>
+            <tr><td>Night</td><td><em>Lowered highs and mids for quiet late-night listening</em></td></tr>
+            <tr><td>Podcast</td><td><em>Cuts lows, boosts speech-range presence (250 Hz–2 kHz)</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ REVERB ═══ -->
+  <section id="reverb">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-violet)">∿</div>
+        <h2>Reverb Engine</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>A <strong>convolution reverb</strong> built entirely in the Web Audio API. The impulse response is generated algorithmically with Gaussian early reflections and a low-pass filtered noise tail — no sample files required. Toggle with <kbd>B</kbd>.</p>
+      <div class="table-wrap">
+        <table class="t-violet">
+          <thead><tr><th>Room Type</th><th>Pre-delay</th><th>Damping</th><th>Character</th></tr></thead>
+          <tbody>
+            <tr><td>Room</td><td><em>10 ms</em></td><td><em>0.55</em></td><td><em>Natural, intimate space — subtle and transparent</em></td></tr>
+            <tr><td>Hall</td><td><em>25 ms</em></td><td><em>0.35</em></td><td><em>Large concert hall — long decay with early reflections</em></td></tr>
+            <tr><td>Chamber</td><td><em>6 ms</em></td><td><em>0.60</em></td><td><em>Studio echo chamber — tight, present, controlled</em></td></tr>
+            <tr><td>Cave</td><td><em>45 ms</em></td><td><em>0.20</em></td><td><em>Deep cavernous decay — long and dramatic</em></td></tr>
+            <tr><td>Spring</td><td><em>2 ms</em></td><td><em>0.70</em></td><td><em>Classic spring reverb character — vintage warmth</em></td></tr>
+            <tr><td>Plate</td><td><em>3 ms</em></td><td><em>0.65</em></td><td><em>Studio plate — bright, smooth, professional</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Three controls: <strong>Room Size</strong> (0–1) · <strong>Wet Mix</strong> (0–40%) · <strong>Decay</strong> (0.1–4.0 s). The impulse response rebuilds in real-time as you adjust.</p>
+    </div>
+  </section>
+
+  <!-- ═══ PLAYLIST ═══ -->
+  <section id="playlist">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-lime)">☰</div>
+        <h2>Playlist Management</h2>
+        <div class="accent-line"></div>
+      </div>
+      <div class="table-wrap">
+        <table class="t-lime">
+          <thead><tr><th>Action</th><th>How To</th></tr></thead>
+          <tbody>
+            <tr><td>Add Files</td><td><em>Drag &amp; drop audio/video files · Click + ADD · Import a URL</em></td></tr>
+            <tr><td>Reorder</td><td><em>Drag tracks by the grip handle on the left edge</em></td></tr>
+            <tr><td>Remove</td><td><em>Hover a track and click × to remove it</em></td></tr>
+            <tr><td>Search</td><td><em>Press <kbd>/</kbd> to filter tracks in real-time with highlight</em></td></tr>
+            <tr><td>Save Playlist</td><td><em>Click SAVE — exports a .spl bundle with local audio packed in and stream URLs preserved</em></td></tr>
+            <tr><td>Load Playlist</td><td><em>Click LOAD — restores a .spl bundle including local audio data and stream entries</em></td></tr>
+            <tr><td>Clear</td><td><em>CLEAR removes all tracks and resets the player</em></td></tr>
+            <tr><td>Auto-save</td><td><em>Playlist state persists to localStorage between sessions automatically</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The <strong>.spl format</strong> is a custom binary bundle: a magic header, a JSON manifest, and the raw audio bytes for every local file — all packed into one portable archive.</p>
+    </div>
+  </section>
+
+  <!-- ═══ VIDEO PLAYBACK ═══ -->
+  <section id="video">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-cyan)">▣</div>
+        <h2>Video Playback</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>SOHMNAMP can route video audio through the same analyser, EQ, reverb, recording tap, and visualizer pipeline. In 4.0.4, local video can open in a dedicated native Electron window, while direct video URLs still use the in-player floating panel when needed.</p>
+      <div class="table-wrap">
+        <table class="t-cyan">
+          <thead><tr><th>Feature</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Local Video</td><td><em>Drag in video files supported by Chromium, including MP4, WebM, MOV, M4V, OGV, and other browser-decodable formats. Local files can launch in the dedicated video-player window</em></td></tr>
+            <tr><td>Native Window</td><td><em>Separate resizable Electron window powered by video-player.html, with its own playback surface and window controls</em></td></tr>
+            <tr><td>Direct URL</td><td><em>Import direct video URLs from the URL modal; detected video links open in the video flow instead of the audio playlist</em></td></tr>
+            <tr><td>Visualizer Routing</td><td><em>Video audio is connected to the same Web Audio analyser so all 13 visualizers react to it</em></td></tr>
+            <tr><td>Floating Panel</td><td><em>Drag by the title bar, cycle size presets, enter fullscreen video, or close from the toolbar</em></td></tr>
+            <tr><td>Picture-in-Picture</td><td><em>Uses the browser Picture-in-Picture API when available</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RADIO ═══ -->
+  <section id="radio">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-amber)">📡</div>
+        <h2>Radio &amp; URL Streaming</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Built-in access to over <strong>100,000 live radio stations</strong> via the RadioBrowser API, organised across genre tabs with debounced search, country filtering, pagination, and station favorites. Direct URL import now opens straight to the URL panel when launched from playlist controls or the drop-zone hint.</p>
+      <div class="table-wrap">
+        <table class="t-amber">
+          <thead><tr><th>Genre Tabs</th><th></th><th></th><th></th><th></th></tr></thead>
+          <tbody>
+            <tr><td>TOP</td><td><em>Hip-Hop</em></td><td><em>R&amp;B</em></td><td><em>Soul</em></td><td><em>Funk</em></td></tr>
+            <tr><td>Jazz</td><td><em>Blues</em></td><td><em>Reggae</em></td><td><em>Electronic</em></td><td><em>House</em></td></tr>
+            <tr><td>Techno</td><td><em>D&amp;B</em></td><td><em>Ambient</em></td><td><em>Lo-Fi</em></td><td><em>Classical</em></td></tr>
+            <tr><td>Rock</td><td><em>Metal</em></td><td><em>Pop</em></td><td><em>Country</em></td><td><em>Latin</em></td></tr>
+            <tr><td>Afrobeats</td><td><em>World</em></td><td><em>Gospel</em></td><td><em>Talk</em></td><td><em>News</em></td></tr>
+            <tr><td>★ Favorites</td><td><em>Direct URL</em></td><td><em>Country filter</em></td><td><em>Load more</em></td><td><em>Audio/video links</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Live BPM Estimation for Streams:</strong> Real-time BPM via per-frame energy flux, adaptive threshold onset detection, and autocorrelation — updates every 4 s and displays as <strong>~128 BPM</strong>. This live estimate feeds directly into the Mood engine when no file BPM is available.</p>
+    </div>
+  </section>
+
+  <!-- ═══ PODCASTS ═══ -->
+  <section id="podcasts">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-magenta)">🎙</div>
+        <h2>Podcasts <span class="new">New</span></h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Full podcast browser powered by the <strong>iTunes Search API</strong> and RSS feed parsing via Electron's native net module — no CORS limitations. Browse top charts, search shows, open RSS episode lists, favorite episodes, and stream them directly through the same EQ and visualizer pipeline.</p>
+      <div class="table-wrap">
+        <table class="t-mag">
+          <thead><tr><th>Feature</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Top Charts</td><td><em>Loads the top 25 podcasts from iTunes charts, with The Why Files pinned as a quick-access show</em></td></tr>
+            <tr><td>Search</td><td><em>Full-text search across the iTunes podcast catalogue — up to 40 results</em></td></tr>
+            <tr><td>RSS Parsing</td><td><em>Native Electron net.request fetches the RSS feed server-side — no CORS</em></td></tr>
+            <tr><td>Episode List</td><td><em>All episodes with title, date, and duration from the RSS feed</em></td></tr>
+            <tr><td>Play Episode</td><td><em>Select an episode, then import it; double-click also imports immediately. Full EQ and visualizer remain active</em></td></tr>
+            <tr><td>Favorites</td><td><em>Episodes can be starred into the shared Favorites stream list</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ BPM & KEY ═══ -->
+  <section id="bpm">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-rose)">♩</div>
+        <h2>BPM &amp; Key Detection</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Every local audio file is automatically analysed when loaded. BPM and musical key appear in the LCD display and fullscreen HUD. Live streams use the rolling BPM estimator instead of offline file analysis.</p>
+      <div class="table-wrap">
+        <table class="t-rose">
+          <thead><tr><th>Feature</th><th>Method</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>BPM (Files)</td><td><em>Onset autocorrelation</em></td><td><em>Energy envelope + first-order difference + lag search 60–200 BPM</em></td></tr>
+            <tr><td>BPM (Streams)</td><td><em>Live flux estimator</em></td><td><em>Per-frame RMS energy flux, circular buffer, updates every 4 s</em></td></tr>
+            <tr><td>Key Detection</td><td><em>Krumhansl-Schmuckler</em></td><td><em>Chroma extraction via Goertzel algorithm across octaves 2–7</em></td></tr>
+            <tr><td>Key Display</td><td><em>Root + mode</em></td><td><em>e.g. A Minor · D Major · F# Minor</em></td></tr>
+            <tr><td>Analysis Window</td><td><em>10 seconds</em></td><td><em>Taken from 30% into the track for representational stability</em></td></tr>
+            <tr><td>BPM Range</td><td><em>60–200 BPM</em></td><td><em>Auto octave-corrects below 70 or above 180</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ UI SKINS ═══ -->
+  <section id="skins">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-magenta)">◈</div>
+        <h2>UI Skins (26)</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>The <strong>UI Skin</strong> controls the entire interface chrome. Every skin now uses the <strong>Apple Pro Gloss system</strong> — specular highlight rims, layered glass sheens on buttons, and 4-stop depth gradients throughout.</p>
+      <div class="callout">
+        <p><strong>Apple Pro Gloss System</strong> — Universal specular layer across all 26 skins: bright highlight rim on every panel header, top-half glass sheen on every control button, 1 px specular bead at button tops, 4-stop gradients (highlight → mid → base → shadow) on all surfaces. The same treatment from SOHMNA Revival, applied universally.</p>
+      </div>
+      <div class="swatch-grid">
+        <div class="swatch-chip featured"><span class="dot" style="background:#a78bfa;color:#a78bfa"></span>Revival ✦</div>
+        <div class="swatch-chip"><span class="dot" style="background:#00e5ff;color:#00e5ff"></span>Cosmic</div>
+        <div class="swatch-chip"><span class="dot" style="background:#ff9500;color:#ff9500"></span>Solar</div>
+        <div class="swatch-chip"><span class="dot" style="background:#00ff41;color:#00ff41"></span>Matrix</div>
+        <div class="swatch-chip"><span class="dot" style="background:#ff3388;color:#ff3388"></span>Rose</div>
+        <div class="swatch-chip"><span class="dot" style="background:#88ccff;color:#88ccff"></span>Ice</div>
+        <div class="swatch-chip"><span class="dot" style="background:#9933ff;color:#9933ff"></span>Midnight</div>
+        <div class="swatch-chip"><span class="dot" style="background:#e0f0ff;color:#e0f0ff"></span>Day</div>
+        <div class="swatch-chip"><span class="dot" style="background:#aaff00;color:#aaff00"></span>Acid</div>
+        <div class="swatch-chip"><span class="dot" style="background:#cc0022;color:#cc0022"></span>Crimson</div>
+        <div class="swatch-chip"><span class="dot" style="background:#cc7744;color:#cc7744"></span>Copper</div>
+        <div class="swatch-chip"><span class="dot" style="background:#6666aa;color:#aaaacc"></span>Void</div>
+        <div class="swatch-chip"><span class="dot" style="background:#ffaacc;color:#ffaacc"></span>Sakura</div>
+        <div class="swatch-chip"><span class="dot" style="background:#44aa33;color:#44aa33"></span>Jungle</div>
+        <div class="swatch-chip"><span class="dot" style="background:#ff6600;color:#ff6600"></span>Ember</div>
+        <div class="swatch-chip"><span class="dot" style="background:#ff4422;color:#ff4422"></span>Tomato</div>
+        <div class="swatch-chip"><span class="dot" style="background:#f0dc38;color:#f0dc38"></span>Citrus</div>
+        <div class="swatch-chip"><span class="dot" style="background:#c4aee8;color:#c4aee8"></span>Lavender</div>
+        <div class="swatch-chip"><span class="dot" style="background:#ffaa00;color:#ffaa00"></span>Mango</div>
+        <div class="swatch-chip"><span class="dot" style="background:#cc1122;color:#cc1122"></span>Chili</div>
+        <div class="swatch-chip"><span class="dot" style="background:#d4b800;color:#d4b800"></span>Mustard</div>
+        <div class="swatch-chip"><span class="dot" style="background:#3a5208;color:#88aa22"></span>Moss</div>
+        <div class="swatch-chip"><span class="dot" style="background:#7dd4c0;color:#7dd4c0"></span>Seafoam</div>
+        <div class="swatch-chip"><span class="dot" style="background:#7ec800;color:#7ec800"></span>Lime</div>
+        <div class="swatch-chip"><span class="dot" style="background:#c8a8c8;color:#c8a8c8"></span>Sienna</div>
+        <div class="swatch-chip"><span class="dot" style="background:#a8cce8;color:#a8cce8"></span>Sky</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ VIZ THEMES ═══ -->
+  <section id="viz-themes">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-cyan)">◉</div>
+        <h2>Visualizer Color Themes (22)</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Controls the 3D visualizer's colour palette — completely independent of the UI skin. Locked while Mood mode is active.</p>
+      <div class="table-wrap">
+        <table class="t-cyan">
+          <thead><tr><th>Theme</th><th>Hue Range</th><th>Saturation</th><th>Character</th></tr></thead>
+          <tbody>
+            <tr><td>Cosmic</td><td><em>Cyan → Violet → Magenta</em></td><td><em>100%</em></td><td><em>Default — deep space aurora</em></td></tr>
+            <tr><td>Solar</td><td><em>Orange → Yellow</em></td><td><em>100%</em></td><td><em>Warm stellar flares</em></td></tr>
+            <tr><td>Aurora</td><td><em>Green → Teal</em></td><td><em>90%</em></td><td><em>Northern lights palette</em></td></tr>
+            <tr><td>Rose</td><td><em>Pink → Magenta</em></td><td><em>100%</em></td><td><em>Deep crimson bloom</em></td></tr>
+            <tr><td>Ice</td><td><em>Light Blue → White</em></td><td><em>60%</em></td><td><em>Arctic crystal clarity</em></td></tr>
+            <tr><td>Matrix</td><td><em>Neon Green</em></td><td><em>100%</em></td><td><em>Classic terminal green</em></td></tr>
+            <tr><td>Midnight</td><td><em>Purple → Violet</em></td><td><em>100%</em></td><td><em>Deep night sky</em></td></tr>
+            <tr><td>Neon</td><td><em>Full rainbow</em></td><td><em>100%</em></td><td><em>Maximum saturation cycle</em></td></tr>
+            <tr><td>Gold</td><td><em>Orange → Yellow</em></td><td><em>100%</em></td><td><em>Warm metallic shimmer</em></td></tr>
+            <tr><td>Blood</td><td><em>Deep Crimson</em></td><td><em>100%</em></td><td><em>Narrow dark red</em></td></tr>
+            <tr><td>Ember</td><td><em>Fire Orange</em></td><td><em>100%</em></td><td><em>Glowing coals</em></td></tr>
+            <tr><td>Toxic</td><td><em>Acid Yellow-Green</em></td><td><em>100%</em></td><td><em>Radioactive hazard</em></td></tr>
+            <tr><td>Violet</td><td><em>Deep Purple</em></td><td><em>100%</em></td><td><em>Rich ultraviolet tone</em></td></tr>
+            <tr><td>Candy</td><td><em>Pink → Purple</em></td><td><em>100%</em></td><td><em>Bubblegum pastel</em></td></tr>
+            <tr><td>Ocean</td><td><em>Deep Teal Blue</em></td><td><em>90%</em></td><td><em>Submarine depths</em></td></tr>
+            <tr><td>Inferno</td><td><em>Red → Orange → Yellow</em></td><td><em>100%</em></td><td><em>Heat gradient</em></td></tr>
+            <tr><td>Arctic</td><td><em>Pale Icy White-Blue</em></td><td><em>50%</em></td><td><em>Low-saturation frost</em></td></tr>
+            <tr><td>Jungle</td><td><em>Deep Forest Green</em></td><td><em>90%</em></td><td><em>Dense canopy</em></td></tr>
+            <tr><td>Lava</td><td><em>Molten Red-Orange</em></td><td><em>100%</em></td><td><em>Volcanic flow</em></td></tr>
+            <tr><td>Copper</td><td><em>Warm Rust Bronze</em></td><td><em>80%</em></td><td><em>Oxidised metal</em></td></tr>
+            <tr><td>Ultraviolet</td><td><em>UV Purple-Blue</em></td><td><em>100%</em></td><td><em>Beyond visible spectrum</em></td></tr>
+            <tr><td>Prism</td><td><em>Full Rainbow (hueRange 1.0)</em></td><td><em>100%</em></td><td><em>Every colour at once</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RECORDING ═══ -->
+  <section id="recording">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-rose)">⏺</div>
+        <h2>Recording &amp; Broadcasting</h2>
+        <div class="accent-line"></div>
+      </div>
+      <div class="table-wrap">
+        <table class="t-rose">
+          <thead><tr><th>Feature</th><th>Button</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Record Audio</td><td><em>⏺ REC</em></td><td><em>Captures master audio output as WebM/Opus or OGG, depending on browser support. EQ and reverb are included. Timer shows live duration; click again to stop and auto-download</em></td></tr>
+            <tr><td>Broadcast</td><td><em>📷 CAST</em></td><td><em>Captures the Three.js canvas at 30 fps, mixes in app audio when available, and opens a dedicated SOHMNAMP BROADCAST window for OBS/window capture workflows. The 4.0.4 monitor uses a generated Blob page for cleaner stream attachment</em></td></tr>
+            <tr><td>Sleep Timer</td><td><em>☾ SLEEP</em></td><td><em>Sets an auto-stop timer. Playback fades out gracefully. Live countdown displays next to the button</em></td></tr>
+            <tr><td>Notifications</td><td><em>🔔 NOTIF</em></td><td><em>In-app now-playing toasts always work; OS notifications can be enabled from the bell when the platform permits them</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ DISPLAY MODES ═══ -->
+  <section id="display">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-violet)">⊞</div>
+        <h2>Display Modes</h2>
+        <div class="accent-line"></div>
+      </div>
+      <div class="table-wrap">
+        <table class="t-violet">
+          <thead><tr><th>Mode</th><th>Key</th><th>Activate</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Normal</td><td><em>—</em></td><td><em>Default</em></td><td><em>Full player interface with all controls visible</em></td></tr>
+            <tr><td>Mini Player</td><td><em>M</em></td><td><em>MINI button in titlebar</em></td><td><em>Compact floating player. Visualizer fills the window. All transport controls remain accessible</em></td></tr>
+            <tr><td>Fullscreen Viz</td><td><em>F</em></td><td><em>⛶ FULLSCREEN in visualizer</em></td><td><em>Visualizer fills the screen. HUD fades in on mouse movement showing track, time, BPM, key, and controls</em></td></tr>
+            <tr><td>Always on Top</td><td><em>T</em></td><td><em>📌 TOP in titlebar</em></td><td><em>Pins the window above all other apps — useful as a live backdrop while working in a DAW</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ KEYBOARD SHORTCUTS ═══ -->
+  <section id="shortcuts">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-cyan)">⌨</div>
+        <h2>Keyboard Shortcuts</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Keyboard shortcuts follow the in-app <strong>? KEYS</strong> overlay. Playback/view shortcuts are active when focus is outside form fields; the voice shortcut is also registered by Electron as a global shortcut.</p>
+      <div class="kb-grid">
+        <div class="kb-card">
+          <div class="kb-title" style="color:var(--c-cyan)">Playback</div>
+          <div class="kb-row"><kbd>Space</kbd><span>Play / Pause</span></div>
+          <div class="kb-row"><kbd>←</kbd><span>Previous track</span></div>
+          <div class="kb-row"><kbd>→</kbd><span>Next track</span></div>
+        </div>
+        <div class="kb-card">
+          <div class="kb-title" style="color:var(--c-amber)">FX &amp; View</div>
+          <div class="kb-row"><kbd>B</kbd><span>Reverb on / off</span></div>
+          <div class="kb-row"><kbd>V</kbd><span>Cycle visualizer</span></div>
+          <div class="kb-row"><kbd>F</kbd><span>Fullscreen</span></div>
+          <div class="kb-row"><kbd>M</kbd><span>Mini player</span></div>
+          <div class="kb-row"><kbd>T</kbd><span>Always on top</span></div>
+          <div class="kb-row"><kbd>Esc</kbd><span>Close / exit fullscreen</span></div>
+        </div>
+        <div class="kb-card">
+          <div class="kb-title" style="color:var(--c-revival)">Voice &amp; Search</div>
+          <div class="kb-row"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd><span>Voice control (global)</span></div>
+          <div class="kb-row"><kbd>Ctrl</kbd><kbd>⇧</kbd><kbd>V</kbd><span>Voice control (global)</span></div>
+          <div class="kb-row"><kbd>Ctrl</kbd><kbd>F</kbd><span>Focus playlist search</span></div>
+          <div class="kb-row"><kbd>/</kbd><span>Focus playlist search</span></div>
+          <div class="kb-row"><kbd>?</kbd><span>Shortcut overlay</span></div>
+        </div>
+        <div class="kb-card">
+          <div class="kb-title" style="color:var(--c-violet)">Visualizers</div>
+          <div class="kb-row"><kbd>1</kbd><span>Nebula</span></div>
+          <div class="kb-row"><kbd>2</kbd><span>Galaxy</span></div>
+          <div class="kb-row"><kbd>3</kbd><span>Supernova</span></div>
+          <div class="kb-row"><kbd>4</kbd><span>Cosmos</span></div>
+          <div class="kb-row"><kbd>5</kbd><span>Stardust</span></div>
+          <div class="kb-row"><kbd>6</kbd><span>Crystal</span></div>
+          <div class="kb-row"><kbd>7</kbd><span>Aurora</span></div>
+          <div class="kb-row"><kbd>8</kbd><span>Stars</span></div>
+          <div class="kb-row"><kbd>9</kbd><span>Plasma</span></div>
+          <div class="kb-row"><kbd>0</kbd><span>Waveform</span></div>
+          <div class="kb-row"><kbd>Q</kbd><span>Terrain</span></div>
+          <div class="kb-row"><kbd>W</kbd><span>Rings</span></div>
+          <div class="kb-row"><kbd>E</kbd><span>Spatial</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ TECH STACK ═══ -->
+  <section id="tech">
+    <div class="glass section-wrap">
+      <div class="section-header">
+        <div class="section-icon" style="color:var(--c-lime)">⚙</div>
+        <h2>Technical Architecture</h2>
+        <div class="accent-line"></div>
+      </div>
+      <p>Everything user-facing runs in the browser layer of Electron. The app uses a small preload bridge and main-process IPC for native window controls, dedicated video windows, permissions, podcast RSS fetching, update events, and the persistent speech subprocess in non-MAS builds.</p>
+      <div class="table-wrap">
+        <table class="t-lime">
+          <thead><tr><th>Technology</th><th>Version</th><th>Used For</th></tr></thead>
+          <tbody>
+            <tr><td>Electron</td><td><em>42.2.0</em></td><td><em>Desktop shell — native window, IPC, microphone, podcast RSS, subprocess management</em></td></tr>
+            <tr><td>Electron Builder</td><td><em>26.8.1</em></td><td><em>Mac Universal DMG, Windows NSIS EXE, MAS package targets, signing, blockmaps, and update metadata</em></td></tr>
+            <tr><td>Electron Updater</td><td><em>6.8.3</em></td><td><em>Release metadata integration for Mac and Windows artifacts</em></td></tr>
+            <tr><td>Web Audio API</td><td><em>Native</em></td><td><em>Full audio pipeline — analysis, EQ, reverb, crossfade, recording tap</em></td></tr>
+            <tr><td>Three.js</td><td><em>r128</em></td><td><em>All 13 WebGL visualizer modes</em></td></tr>
+            <tr><td>GLSL Shaders</td><td><em>Custom</em></td><td><em>Aurora, Plasma, Crystal, Spatial, Terrain per-vertex audio deformation</em></td></tr>
+            <tr><td>video-player.html</td><td><em>Local</em></td><td><em>Dedicated native video companion window for local video playback</em></td></tr>
+            <tr><td>Speech Helper</td><td><em>Local Python / Swift</em></td><td><em>Voice command transcription via persistent helper process in direct DMG/EXE builds</em></td></tr>
+            <tr><td>Claude Haiku</td><td><em>Optional API</em></td><td><em>Natural-language voice intent parsing when ANTHROPIC_API_KEY is available</em></td></tr>
+            <tr><td>MediaPipe Hands</td><td><em>CDN</em></td><td><em>21-landmark real-time hand detection for gesture control</em></td></tr>
+            <tr><td>iTunes Search API</td><td><em>REST</em></td><td><em>Podcast chart and search results</em></td></tr>
+            <tr><td>RadioBrowser API</td><td><em>REST</em></td><td><em>100,000+ live station metadata and stream URLs</em></td></tr>
+            <tr><td>MediaRecorder API</td><td><em>Native</em></td><td><em>WebM/Opus or OGG capture from the master gain node</em></td></tr>
+            <tr><td>MediaStream API</td><td><em>Native</em></td><td><em>Canvas/audio broadcast stream for the dedicated capture window</em></td></tr>
+            <tr><td>localStorage</td><td><em>Native</em></td><td><em>State persistence — volume, skin, always-on-top, favorites, playlist cache</em></td></tr>
+            <tr><td>.spl Playlist Bundle</td><td><em>Custom Binary</em></td><td><em>Portable playlist exports with JSON manifest plus packed local audio bytes</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <span class="pill pill-accent">Electron 42</span>
+        <span class="pill pill-accent">Builder 26.8</span>
+        <span class="pill pill-cyan">Web Audio API</span>
+        <span class="pill pill-violet">Three.js r128</span>
+        <span class="pill pill-amber">GLSL</span>
+        <span class="pill pill-lime">Whisper</span>
+        <span class="pill pill-lime">MediaPipe</span>
+        <span class="pill pill-rose">RadioBrowser</span>
+        <span class="pill pill-mag">iTunes API</span>
+        <span class="pill">.spl Bundles</span>
+      </p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <footer>
+    <div class="footer-logo">SOHMNAMP</div>
+    <div class="footer-sub">v4.0.4 &nbsp;·&nbsp; vision pro release &nbsp;·&nbsp; local-first player &nbsp;·&nbsp; electron desktop</div>
+    <div class="footer-tagline">built for those who believe music deserves to be seen</div>
+  </footer>
+
+</div>
+</body>
+</html>
