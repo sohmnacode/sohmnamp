@@ -38,7 +38,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
       - name: Build Mac DMG
-        run: npm run build:mac:dmg
+        run: npx electron-builder --mac dmg --arm64
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
