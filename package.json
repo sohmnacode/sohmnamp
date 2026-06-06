@@ -34,7 +34,7 @@
   "build": {
     "appId": "com.sohmna.sohmnamp",
     "productName": "SOHMNAMP",
-    "buildVersion": "4.0.4",
+    "buildVersion": "4.0.8",
     "copyright": "Copyright © 2026 SOHMNAMP",
     "afterPack": "scripts/strip-xattrs.cjs",
     "directories": {
