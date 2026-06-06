@@ -1,6 +1,6 @@
 {
   "name": "sohmnamp",
-  "version": "4.0.2",
+  "version": "4.0.4",
   "description": "SOHMNAMP — Immersive Cosmic Audio Visualizer",
   "main": "main.js",
   "author": "SOHMNAMP",
@@ -10,7 +10,7 @@
     "dev": "electron . --enable-logging",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
-    "build:mac:dmg": "electron-builder --mac dmg",
+    "build:mac:dmg": "node scripts/build-local-dmg.cjs",
     "build:mac:arm": "electron-builder --mac --arm64",
     "build:mac:intel": "electron-builder --mac --x64",
     "build:mac:universal": "electron-builder --mac --universal",
@@ -19,20 +19,22 @@
     "release:mac": "electron-builder --mac --publish always",
     "release:win": "electron-builder --win --publish always",
     "build:mas": "electron-builder --mac mas --universal",
-    "build:mas:dev": "electron-builder --mac mas-dev --universal"
+    "build:mas:dev": "electron-builder --mac mas-dev --universal",
+    "verify:mas": "node scripts/verify-mas-build.cjs"
   },
   "devDependencies": {
     "@electron/notarize": "^3.1.1",
     "dotenv": "^17.4.2",
-    "electron": "^42.0.1",
-    "electron-builder": "^24.13.0"
+    "electron": "42.2.0",
+    "electron-builder": "^26.8.1"
   },
   "dependencies": {
-    "electron-updater": "^6.1.7"
+    "electron-updater": "^6.8.3"
   },
   "build": {
     "appId": "com.sohmna.sohmnamp",
     "productName": "SOHMNAMP",
+    "buildVersion": "4.0.4",
     "copyright": "Copyright © 2026 SOHMNAMP",
     "afterPack": "scripts/strip-xattrs.cjs",
     "directories": {
@@ -40,6 +42,7 @@
     },
     "files": [
       "index.html",
+      "video-player.html",
       "main.js",
       "preload.js",
       "README.html",
@@ -66,13 +69,14 @@
       "notarize": false,
       "identity": "Lawrence Ligad Jr (5S2MSRJ378)",
       "preAutoEntitlements": false,
-      "entitlements": "entitlements_mas.plist",
-      "entitlementsInherit": "entitlements_mas.inherit.plist",
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.inherit.plist",
       "extendInfo": {
         "NSCameraUsageDescription": "SOHMNAMP uses your camera to detect hand gestures for controlling playback.",
         "NSMicrophoneUsageDescription": "SOHMNAMP uses your microphone for voice commands and audio broadcast.",
         "NSSpeechRecognitionUsageDescription": "SOHMNAMP uses speech recognition to understand voice commands for controlling playback.",
-        "NSDocumentsFolderUsageDescription": "SOHMNAMP reads music files you select from your Documents folder."
+        "NSDocumentsFolderUsageDescription": "SOHMNAMP reads music files you select from your Documents folder.",
+        "ElectronTeamID": "5S2MSRJ378"
       },
       "target": [
         {
@@ -92,9 +96,10 @@
     "mas": {
       "type": "distribution",
       "category": "public.app-category.music",
-      "entitlements": "entitlements_mas.plist",
-      "entitlementsInherit": "entitlements_mas.inherit.plist",
-      "hardenedRuntime": false,
+      "entitlements": "entitlements.mas.plist",
+      "entitlementsInherit": "entitlements.mas.inherit.plist",
+      "hardenedRuntime": true,
+      "preAutoEntitlements": false,
       "provisioningProfile": "embedded.provisionprofile",
       "identity": "Lawrence Ligad Jr (5S2MSRJ378)"
     },
