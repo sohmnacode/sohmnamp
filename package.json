@@ -101,7 +101,22 @@
       "hardenedRuntime": true,
       "preAutoEntitlements": false,
       "provisioningProfile": "embedded.provisionprofile",
-      "identity": "Lawrence Ligad Jr (5S2MSRJ378)"
+      "identity": "Lawrence Ligad Jr (5S2MSRJ378)",
+      "asarUnpack": [],
+      "files": [
+        "index.html",
+        "video-player.html",
+        "main.js",
+        "preload.js",
+        "README.html",
+        "assets/**/*",
+        "!assets/speech_helper.py",
+        "!assets/speech_helper",
+        "!assets/speech_helper 2",
+        "!assets/speech_helper 2.py",
+        "!assets/vosk-model/**/*",
+        "node_modules/electron-updater/**/*"
+      ]
     },
     "masDev": {
       "type": "development",

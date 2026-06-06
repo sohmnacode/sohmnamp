@@ -21,6 +21,10 @@ function fail(message) {
   process.exitCode = 1;
 }
 
+function warn(message) {
+  console.warn(`WARN ${message}`);
+}
+
 if (!fs.existsSync(appPath)) {
   fail(`Missing app bundle: ${appPath}`);
   process.exit();
@@ -48,11 +52,14 @@ if (!appEntitlements.includes('com.apple.security.app-sandbox')) {
 if (!appEntitlements.includes(appGroup)) {
   fail(`Main app is missing application group ${appGroup}`);
 }
-if (!appEntitlements.includes('com.apple.security.cs.allow-jit')) {
-  fail('Main app is missing com.apple.security.cs.allow-jit');
+
+// allow-jit and allow-unsigned-executable-memory are FORBIDDEN in MAS distribution builds.
+// The --jitless V8 flag in main.js replaces the need for allow-jit.
+if (appEntitlements.includes('com.apple.security.cs.allow-jit')) {
+  fail('Main app contains com.apple.security.cs.allow-jit — FORBIDDEN in MAS distribution (remove from entitlements.mas.plist)');
 }
-if (!appEntitlements.includes('com.apple.security.cs.allow-unsigned-executable-memory')) {
-  fail('Main app is missing com.apple.security.cs.allow-unsigned-executable-memory');
+if (appEntitlements.includes('com.apple.security.cs.allow-unsigned-executable-memory')) {
+  fail('Main app contains com.apple.security.cs.allow-unsigned-executable-memory — FORBIDDEN in MAS distribution');
 }
 
 const helperNames = [
@@ -77,14 +84,14 @@ for (const name of helperNames) {
   if (!helperEntitlements.includes('com.apple.security.inherit')) {
     fail(`${name} is missing com.apple.security.inherit`);
   }
-  if (!helperEntitlements.includes('com.apple.security.cs.allow-jit')) {
-    fail(`${name} is missing com.apple.security.cs.allow-jit`);
+  if (helperEntitlements.includes('com.apple.security.cs.allow-jit')) {
+    fail(`${name} contains allow-jit — FORBIDDEN in MAS distribution`);
   }
-  if (!helperEntitlements.includes('com.apple.security.cs.allow-unsigned-executable-memory')) {
-    fail(`${name} is missing com.apple.security.cs.allow-unsigned-executable-memory`);
+  if (helperEntitlements.includes('com.apple.security.cs.allow-unsigned-executable-memory')) {
+    fail(`${name} contains allow-unsigned-executable-memory — FORBIDDEN in MAS distribution`);
   }
 }
 
 if (!process.exitCode) {
-  console.log(`OK MAS bundle looks launch-safe: ${appPath}`);
+  console.log(`OK MAS bundle looks submission-ready: ${appPath}`);
 }
