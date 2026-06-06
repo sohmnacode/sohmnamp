@@ -28,7 +28,7 @@ jobs:
       - name: Build Windows installer
         run: npm run build:win
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ""
 
       - name: Upload .exe artifact
         uses: actions/upload-artifact@v4
